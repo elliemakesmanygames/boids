@@ -58,7 +58,7 @@ const function overlap(p: Vector2): { Vector2 }
     if min_cell == max_cell then return { min_cell } end
     for cx = min_cell.X, max_cell.X do
         for cy = min_cell.Y, max_cell.Y do
-            table.insert(cells, Vector2.new(cx, cy))
+            cells[#cells+1] = Vector2.new(cx,cy)
         end
     end
 
@@ -85,23 +85,21 @@ const function owner(p: Vector2, r: number, d: Vector2): Vector2
         end
     end
 
-    if count > 0 then return round(Vector2.new(sx / count, sy / count)) end
+    if count == 0 then
+        local best_cell = cells[1]
+        local best_dot = -1
 
-    local best_cell = cells[1]
-    local best_dot = -math.huge
-
-    for _, c in cells do
-        const center = Vector2.new(c.X * CellSize.X, c.Y * CellSize.Y)
-        const vectorized = (center - p).Unit
-        const dot = vectorized:Dot(d.Unit)
-
-        if dot > best_dot then
-            best_dot = dot
-            best_cell = c
+        for _, c in cells do
+            const center = Vector2.new(c.X * CellSize.X, c.Y * CellSize.Y)
+            const vectorized = (center - p).Unit
+            const dot = vectorized:Dot(d.Unit)
+            if dot > best_dot then best_dot = dot; best_cell = c end
         end
-    end
 
-    return best_cell
+        return best_cell
+    else
+        return round(Vector2.new(sx / count, sy / count)) 
+    end
 end
 
 const function add(id: number, p: Vector2, r: number, d: Vector2): ()
