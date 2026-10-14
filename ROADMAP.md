@@ -1,0 +1,1 @@
+1. Study spatial hash design ; use a grid model or an R-Tree model.
