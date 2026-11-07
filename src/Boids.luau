@@ -6,7 +6,7 @@ const World = {} :: Settings.world
 const speed = Settings.boid_speed
 const force = Settings.boid_force
 const nearby = Settings.nearby_dist
-const sight = Settings.focal_length
+const sight = Settings.focal_sight
 const angle = Settings.focal_angle
 
 const separation_weight = Settings.separation_weight

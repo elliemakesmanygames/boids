@@ -23,7 +23,7 @@ end
 const function morton(p: vector): number
 	local n = 0
 	for i = 0, 15 do
-		const xbit, ybit = bit32.extract(p.X, i), bit32.extract(p.Y, i)
+		const xbit, ybit = bit32.extract(p.x, i), bit32.extract(p.y, i)
 		n = bit32.bor(n, bit32.lshift(xbit, i * 2), bit32.lshift(ybit, i * 2 + 1))
 	end
 	return n + 1
@@ -44,8 +44,8 @@ const function add(id: number, p: vector, r: number): ()
 
 	buffer.writeu16(b, 0, id)
 	buffer.writeu16(b, 2, r)
-	buffer.writef32(b, 4, p.X)
-	buffer.writef32(b, 8, p.Y)
+	buffer.writef32(b, 4, p.x)
+	buffer.writef32(b, 8, p.y)
 
 	Grid[code] = Grid[code] or {}
 	table.insert(Grid[code], b)
