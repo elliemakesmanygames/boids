@@ -1,8 +1,8 @@
 -- Implement mode type that tests sanity checks and grid rigorousity. Use numbers instead of string types if possible.
 type mode = "none" | "light" | "heavy"
 
-export type grid_boid = buffer -- { id: u16, p: (f32, f32), r: u16 } -- 12 bytes
-export type world_boid = buffer -- { p: (f32, f32), r: u16 } -- 10 bytes
+export type grid_boid = buffer -- { id: u16, p: (f32,f32), v: (f32, f32) } -- 18 bytes
+export type world_boid = buffer -- { p: (f32,f32), v: (f32, f32) } -- 16 bytes
 
 export type grid = { [number]: { grid_boid } }
 export type world = { [number]: world_boid }
@@ -15,7 +15,6 @@ return {
 
 	-- Max hash grid size.
 	max_hash_grid_size = vector.create(1024, 1024),
-
 	-- Maximum quantity of boids boids per cell.
 	-- Helps prevent expensive cells / dense cells = more frames to update.
 	-- Optimal for maximum of 10,000 units in a grid.
@@ -25,19 +24,27 @@ return {
 	-- The goal will be to expand this into 3D, so there will be a hash grid structure for 2D.
 	cell_size = vector.create(4, 4),
 	-- Boids will be by default a square.
-	boid_size = vector.one,
+	boid_size = vector.create(1, 1),
 
 	-- Parameters will be u8s calculated with continuous functions.
-	boid_speed = 10, -- in studs/sec
-	boid_force = 5,
+	max_speed = 20, -- in studs/sec
+	max_acceleration = 10, -- in studs/sec^2
+	-- Direction vector for which all boids spawn facing towards.
+	starting_vector = vector.create(1, 0),
 
 	-- Grounding distance for what's considered "nearby"
-	nearby_dist = 30, -- in studs
-	focal_sight = 100, -- in studs
-	focal_angle = math.pi, -- in radians
+	focal_sight = 30, -- in studs
+	focal_angle = 90, -- in degrees
+	detection_radius = 40, -- in studs, intended for the Arrival steering behavior.
+    -- Radius of the circle used for the wander steering behavior.
+	wander_radius = 10, -- in studs
+	-- Offset for which the circle is distanced from the boid.
+	wander_offset = 4, -- in studs
+	-- Magnitude of displacement vector.
+	wander_rate = 2,
 
-	-- Weights are u8 counters that are used to determine steering during:
-	-- Separation, alignment and cohesion.
+	-- Weights are u8 counters that are used to determine steering.
+	-- Divide by 255 whilst using.
 	separation_weight = 51,
 	alignment_weight = 23,
 	cohesion_weight = 13,
@@ -45,6 +52,7 @@ return {
 	seek_weight = 22,
 	flee_weight = 32,
 	pursuit_weight = 10,
+	evasion_weight = 33,
 	wander_weight = 5,
 	-- Will not implement arrival yet
 }

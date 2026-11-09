@@ -11,56 +11,63 @@
 const Settings = require("./Settings")
 const Grid = {} :: Settings.grid
 const CellSize = Settings.cell_size
+const MaxBoidsPerCell = Settings.max_boids_per_cell
 
 const function round(p: vector): vector
 	return vector.create(p.x // CellSize.x, p.y // CellSize.y)
 end
 
-const function rotate(p: vector, r: number): vector
-	return vector.create(p.x * math.cos(r) - p.y * math.sin(r), p.x * math.sin(r) + p.y * math.cos(r))
-end
-
 const function morton(p: vector): number
-	local n = 0
-	for i = 0, 15 do
-		const xbit, ybit = bit32.extract(p.x, i), bit32.extract(p.y, i)
-		n = bit32.bor(n, bit32.lshift(xbit, i * 2), bit32.lshift(ybit, i * 2 + 1))
-	end
-	return n + 1
+	local x = bit32.band(p.X, 0xFFFF)
+	local y = bit32.band(p.Y, 0xFFFF)
+
+	x = bit32.band(bit32.bor(x, bit32.lshift(x, 8)), 0x00FF00FF)
+	x = bit32.band(bit32.bor(x, bit32.lshift(x, 4)), 0x0F0F0F0F)
+	x = bit32.band(bit32.bor(x, bit32.lshift(x, 2)), 0x33333333)
+	x = bit32.band(bit32.bor(x, bit32.lshift(x, 1)), 0x55555555)
+	y = bit32.band(bit32.bor(y, bit32.lshift(y, 8)), 0x00FF00FF)
+	y = bit32.band(bit32.bor(y, bit32.lshift(y, 4)), 0x0F0F0F0F)
+	y = bit32.band(bit32.bor(y, bit32.lshift(y, 2)), 0x33333333)
+	y = bit32.band(bit32.bor(y, bit32.lshift(y, 1)), 0x55555555)
+
+	return bit32.bor(x, bit32.lshift(y, 1)) + 1
 end
 
-const function fetch(p: vector, r: number): number
-	return morton(round(rotate(p, r)))
+const function fetch(p: vector): number
+	return morton(round(p))
 end
 
 const function get(p: vector): { Settings.grid_boid }?
-	const code = morton(round(p))
+	const code = fetch(p)
 	return Grid[code]
 end
 
-const function add(id: number, p: vector, r: number): ()
+const function add(id: number, p: vector, v: vector): ()
 	const b = buffer.create(12)
-	const code = fetch(p, r)
+	const code = fetch(p)
 
 	buffer.writeu16(b, 0, id)
-	buffer.writeu16(b, 2, r)
-	buffer.writef32(b, 4, p.x)
-	buffer.writef32(b, 8, p.y)
+	buffer.writef32(b, 2, p.x)
+	buffer.writef32(b, 6, p.y)
+	buffer.writef32(b, 10, v.x)
+	buffer.writef32(b, 14, v.y)
 
 	Grid[code] = Grid[code] or {}
 	table.insert(Grid[code], b)
 end
 
-const function remove(id: number, p: vector, r: number): ()
-	const code = fetch(p, r)
+const function remove(id: number, p: vector): ()
+	const code = fetch(p)
 	const cell = Grid[code]
+	if not cell then return end
 
-	for i, v in cell do
-		const b = buffer.readu16(v, 0)
-		if b == id then
-			cell[i], cell[#cell] = cell[#cell], cell[i]
-			cell[#cell] = nil
-		end
+	const s = #cell
+	for i = 1, s do
+		const b = buffer.readu16(cell[i], 0)
+		if b ~= id then continue end
+
+		cell[i] = cell[s]
+		cell[s] = nil
 	end
 end
 
