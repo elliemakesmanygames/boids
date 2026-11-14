@@ -1,3 +1,5 @@
+--!strict
+--!optimize 2
 -- World will be the single source of truth of the program.
 -- Use Euler's integration alongside delta time.
 -- p is the pursuer position, tp is target's position, v is velocity, rv is the displacement vector.
@@ -29,8 +31,17 @@ const function predict(p: vector, tp: vector, v: vector): vector
     return tp + (v * T)
 end
 
-const function neighborhood(p: vector, v: vector): {{ vector, number }}
+-- TODO
+const function neighborhood(p: vector, predicate: (p: vector, bp: vector, bv: vector) -> vector): vector
     const sight_vector = vector.normalize(p) * Sight
+    const result = vector.zero
+
+    for i = 1, MaxEvaluatedBoids do
+        -- 1. Get next boid
+        -- 2. Always apply predicate and add to number
+    end
+
+    return result
 end
 
 const function seek(p: vector, t: vector, v: vector): vector
@@ -43,16 +54,15 @@ end
 
 const function pursue(p: vector, tp: vector, v: vector): vector
     const prediction = predict(p, tp, v)
-    return seek(prediction)
+    return seek(p, prediction, v)
 end
 
 const function evade(p: vector, tp: vector, v: vector): vector
     const prediction = predict(p, tp, v)
-    return flee(prediction)
+    return flee(p, prediction, v)
 end
 
-const function wander(p: vector, v: vector, rv: vector): (vector, vector)
-    if v == vector.zero then v = StartingVector end
+const function wander(p: vector, v: vector, rv: vector): (vector, vector)    
     const displacement = vector.create(math.random(-1, 1), math.random(-1, 1)) * WanderRate
     const center = p + (vector.normalize(v) * WanderOffset)
     const new_rv = vector.normalize(rv + displacement) * WanderRadius
@@ -60,13 +70,47 @@ const function wander(p: vector, v: vector, rv: vector): (vector, vector)
     return world_rv - p, new_rv
 end
 
-const function cohere(): vector
+const function repulse(p: vector): vector
+    return neighborhood(p, function(p: vector, bp: vector)
+        const dir = p - bp
+        const r = vector.magnitude(dir)
+        
+        if r == 0 then return vector.zero end
+        const steer = vector.normalize(dir) / r
+        
+        return steer
+    end)
 end
 
-const function align(): vector
+const function cohere(p: vector, v: vector): vector
+    local count = 0
+    const total_position = neighborhood(p, function(p: vector, bp: vector)
+        count += 1
+        return bp
+    end)
+
+    if count == 0 then return vector.zero end
+    const average_position = total_position / count
+    
+    return seek(p, average_position, v)
 end
 
-const function repulsion(): vector
+const function align(p: vector, v: vector): vector
+    local count = 0
+    const total_velocity = neighborhood(p, function(p: vector, bp: vector, bv: vector)
+        count += 1
+        return bv
+    end)
+
+    if count == 0 then return vector.zero end
+    const desired_velocity = total_velocity / count
+    return desired_velocity - v
 end
 
-return {}
+const function steer(p: vector, v: vector): vector
+    
+end
+
+return {
+    steer = steer
+}

@@ -1,6 +1,13 @@
 -- Implement mode type that tests sanity checks and grid rigorousity. Use numbers instead of string types if possible.
 type mode = "none" | "light" | "heavy"
 
+-- Priority will be a u8.
+-- This is planned for prioritized dithering.
+export type priority = {
+	steer: (p: vector, v: vector) -> vector,
+	priority: number,
+}
+
 export type grid_boid = buffer -- { id: u16, p: (f32,f32), v: (f32, f32) } -- 18 bytes
 export type world_boid = buffer -- { p: (f32,f32), v: (f32, f32) } -- 16 bytes
 
