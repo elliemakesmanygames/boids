@@ -19,19 +19,15 @@ const MaxEvaluatedBoids = Settings.max_evaluated_boids
 const SeparationWeight = Settings.separation_weight
 const AlignmentWeight = Settings.alignment_weight
 const CohesionWeight = Settings.cohesion_weight
-const TargetBias = Settings.target_bias
-const SeekWeight = Settings.seek_weight
-const FleeWeight = Settings.flee_weight
 const PursuitWeight = Settings.pursuit_weight
 const EvasionWeight = Settings.evasion_weight
 const WanderWeight = Settings.wander_weight
 
-const function predict(p: vector, tp: vector, v: vector): vector
+const function predict(p: vector, tp: vector, tv: vector): vector
     const T = (tp - p) / MaxSpeed
-    return tp + (v * T)
+    return tp + (tv * T)
 end
 
--- TODO
 const function neighborhood(p: vector, predicate: (p: vector, bp: vector, bv: vector) -> vector): vector
     const sight_vector = vector.normalize(p) * Sight
     const result = vector.zero
@@ -67,6 +63,7 @@ const function wander(p: vector, v: vector, rv: vector): (vector, vector)
     const center = p + (vector.normalize(v) * WanderOffset)
     const new_rv = vector.normalize(rv + displacement) * WanderRadius
     const world_rv = center + new_rv
+
     return world_rv - p, new_rv
 end
 
@@ -74,11 +71,8 @@ const function repulse(p: vector): vector
     return neighborhood(p, function(p: vector, bp: vector)
         const dir = p - bp
         const r = vector.magnitude(dir)
-        
-        if r == 0 then return vector.zero end
-        const steer = vector.normalize(dir) / r
-        
-        return steer
+                
+        return (r == 0) and vector.zero or vector.normalize(dir) / r 
     end)
 end
 
@@ -89,10 +83,7 @@ const function cohere(p: vector, v: vector): vector
         return bp
     end)
 
-    if count == 0 then return vector.zero end
-    const average_position = total_position / count
-    
-    return seek(p, average_position, v)
+    return (count == 0) and vector.zero or seek(p, total_position / count, v)
 end
 
 const function align(p: vector, v: vector): vector
@@ -102,13 +93,12 @@ const function align(p: vector, v: vector): vector
         return bv
     end)
 
-    if count == 0 then return vector.zero end
-    const desired_velocity = total_velocity / count
-    return desired_velocity - v
+    return (count == 0) and vector.zero or total_velocity / count - v
 end
 
-const function steer(p: vector, v: vector): vector
-    
+const function steer(p: vector, v: vector, rv: vector): vector
+    const pursue_steer = pursue(p, )
+    const evade_steer =  
 end
 
 return {

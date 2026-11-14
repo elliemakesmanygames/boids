@@ -40,8 +40,8 @@ return {
 	starting_vector = vector.create(1, 0),
 
 	-- Grounding distance for what's considered "nearby"
-	focal_sight = 30, -- in studs
-	focal_angle = 90, -- in degrees
+	focal_sight = 5, -- in studs, same as focal radius with an angle limit.
+	focal_angle = math.pi/2, -- in radians.
 	detection_radius = 40, -- in studs, intended for the Arrival steering behavior.
     -- Radius of the circle used for the wander steering behavior.
 	wander_radius = 10, -- in studs
@@ -50,16 +50,12 @@ return {
 	-- Magnitude of displacement vector.
 	wander_rate = 2,
 
-	-- Weights are u8 counters that are used to determine steering.
-	-- Divide by 255 whilst using.
-	separation_weight = 51,
-	alignment_weight = 23,
-	cohesion_weight = 13,
-	target_bias = 17,
-	seek_weight = 22,
-	flee_weight = 32,
-	pursuit_weight = 10,
-	evasion_weight = 33,
-	wander_weight = 5,
+	-- Weights are counters in the range of 0 to 1 that are used to determine steering.
+	separation_weight = 51 / 255,
+	alignment_weight = 23 / 255,
+	cohesion_weight = 15 / 255,
+	pursuit_weight = 10 / 255,
+	evasion_weight = 35 / 255,
+	wander_weight = 5 / 255,
 	-- Will not implement arrival yet
 }
