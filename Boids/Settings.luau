@@ -12,7 +12,7 @@ export type grid_boid = buffer -- { id: u16, p: (f32,f32), v: (f32, f32) } -- 18
 export type world_boid = buffer -- { p: (f32,f32), v: (f32, f32) } -- 16 bytes
 
 export type grid = { [number]: { grid_boid } }
-export type world = { [number]: world_boid }
+export type world = { [number]: { wb: world_boid, code: number } }
 
 return {
 	-- Mode will dictate stuff such as enforcing grid sizes, max input coordinates for morton code (<u16)
@@ -21,7 +21,7 @@ return {
 	mode = "none" :: mode,
 
 	-- Max hash grid size.
-	max_hash_grid_size = vector.create(1024, 1024),
+	hash_grid_size = vector.create(1024, 1024),
 	-- Maximum quantity of boids boids per cell.
 	-- Helps prevent expensive cells / dense cells = more frames to update.
 	-- Optimal for maximum of 10,000 units in a grid.

@@ -6,6 +6,8 @@
 const Settings = require("./Settings")
 const Grid = require("./Grid")
 
+const GridSize = Settings.hash_grid_size
+const CellSize = Settings.cell_size
 const MaxSpeed = Settings.max_speed
 const MaxAcceleration = Settings.max_acceleration
 const Sight = Settings.focal_sight
@@ -28,16 +30,8 @@ const function predict(p: vector, tp: vector, tv: vector): vector
     return tp + (tv * T)
 end
 
-const function neighborhood(p: vector, predicate: (p: vector, bp: vector, bv: vector) -> vector): vector
-    const sight_vector = vector.normalize(p) * Sight
-    const result = vector.zero
-
-    for i = 1, MaxEvaluatedBoids do
-        -- 1. Get next boid
-        -- 2. Always apply predicate and add to number
-    end
-
-    return result
+const function neighborhood(p: vector, v: vector, predicate: (p: vector, bp: vector, bv: vector) -> vector): vector
+    return vector.zero
 end
 
 const function seek(p: vector, t: vector, v: vector): vector
@@ -96,9 +90,18 @@ const function align(p: vector, v: vector): vector
     return (count == 0) and vector.zero or total_velocity / count - v
 end
 
-const function steer(p: vector, v: vector, rv: vector): vector
-    const pursue_steer = pursue(p, )
-    const evade_steer =  
+const function steer(p: vector, v: vector, tp: vector, rv: vector): vector
+    const cohere_steer = cohere(p, v)
+    const align_steer = align(p, v)
+    const separation_steer = repulse(p)
+    const pursue_steer = pursue(p, tp, v)
+    const evade_steer = evade(p, tp, v)
+
+    return (cohere_steer * CohesionWeight)
+           + (align_steer * AlignmentWeight)
+           + (separation_steer * SeparationWeight)
+           + (pursue_steer * PursuitWeight)
+           + (evade_steer * EvasionWeight)
 end
 
 return {
